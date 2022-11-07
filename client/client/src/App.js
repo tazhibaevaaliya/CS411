@@ -17,7 +17,7 @@ const commonStyles = {
   justifyContent: 'left',
   border: 1,
   zIndex: 1,
-  backgroundColor: '#dddddd',
+  backgroundColor: '#bde5af',
   flexDirection: 'column',
 };
 
