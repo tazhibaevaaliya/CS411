@@ -1,20 +1,27 @@
 import "./App.css";
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 function App() {
   const [artist, setArtist] = useState("");
 
   function handleSubmit(event) {
     event.preventDefault();
-    axios.post("http://localhost:4000", { artist: artist }).then((res) => {
-      console.log(res);
-    });
+    console.log(artist);
+    const options = {
+      method: "GET",
+      url: "http://localhost:4000/wikipedia",
+      params: { artistName: artist },
+    };
+    axios
+      .request(options)
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
-
-  const handleChange = (event) => {
-    setArtist(event.target.value);
-  };
 
   return (
     <div>
@@ -25,7 +32,7 @@ function App() {
             type="text"
             value={artist}
             name="zip"
-            onChange={handleChange}
+            onChange={(e) => setArtist(e.target.value)}
           />
         </label>
         <input type="submit" value="Submit" />
