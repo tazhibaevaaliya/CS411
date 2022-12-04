@@ -1,14 +1,28 @@
-import axios from "axios";
+import Box from "@mui/material/Box";
+import TextField from "@mui/material/TextField";
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemText from "@mui/material/ListItemText";
+import { FixedSizeList, ListChildComponentProps } from "react-window";
+import Divider from "@mui/material/Divider";
+import spotifyLogo from "../assets/spotify_logo.png";
 import React, { useEffect, useState } from "react";
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
 
-function WikiSearch() {
-  const [search, setSearch] = useState("");
-  const [results, setResults] = useState([]);
-  const [searchInfo, setSearchInfo] = useState({});
+const commonStyles = {
+  bgcolor: "background.paper",
+  m: 1,
+  borderColor: "text.primary",
+  margin: "0 400px",
+  padding: "10px",
+  display: "flex",
+  justifyContent: "left",
+  border: 1,
+  zIndex: 1,
+  backgroundColor: "#bde5af",
+  flexDirection: "column",
+};
 
+function SpotifySearch() {
   function handleSubmit(event) {
     event.preventDefault();
     console.log(search);
@@ -31,22 +45,22 @@ function WikiSearch() {
   }
 
   return (
-    <div className="wikiSearch">
+    <div className="searchPage">
       <header>
-        <h1>Wiki Seeker</h1>
+        <h1>Spotify Seeker</h1>
         <form className="search-box" onSubmit={handleSubmit}>
           <input
             type="search"
-            placeholder="What are you looking for?"
+            placeholder="Which artist are you looking for?"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </form>
-        {searchInfo.totalhits ? (
+        {/* {searchInfo.totalhits ? (
           <p>Search Results: {searchInfo.totalhits}</p>
         ) : (
           ""
-        )}
+        )} */}
       </header>
       <div className="results">
         {results.map((result, i) => {
@@ -66,4 +80,4 @@ function WikiSearch() {
   );
 }
 
-export default WikiSearch;
+export default SpotifySearch;

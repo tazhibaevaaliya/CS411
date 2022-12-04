@@ -16,12 +16,13 @@ const params = {
   origin: "*",
   format: "json",
   action: "query",
-  prop: "extracts",
+  list: "search",
+  prop: "info",
+  inprop: "url",
   exchars: 250,
   exintro: true,
   explaintext: true,
-  generator: "search",
-  gsrlimit: 20,
+  gsrlimit: 5,
 };
 
 app.use(cors());
@@ -149,7 +150,7 @@ app.get("/refresh_token", (req, res) => {
 
 app.get("/wikipedia", (req, res) => {
   const search = req.query.artistName;
-  params.gsrsearch = search;
+  params.srsearch = search;
   console.log(params);
   axios
     .get(wikiEndpoint, { params })

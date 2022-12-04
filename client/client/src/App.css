@@ -7,6 +7,15 @@
   pointer-events: none;
 }
 
+.vl {
+  border-left: 3px solid grey;
+  height: 100%;
+  position: absolute;
+  left: 50%;
+  margin-left: -3px;
+  top: 0;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
