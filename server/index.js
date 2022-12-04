@@ -7,20 +7,39 @@ const app = express();
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI;
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const crypto = require("crypto");
+const request = require("request");
+const wikiEndpoint = "https://en.wikipedia.org/w/api.php?";
+const params = {
+  origin: "*",
+  format: "json",
+  action: "query",
+  prop: "extracts",
+  exchars: 250,
+  exintro: true,
+  explaintext: true,
+  generator: "search",
+  gsrlimit: 20,
+};
 
-console.log("The client ID is " + process.env.CLIENT_ID);
+app.use(cors());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
-app.get("/", (req, res) => {
-  const data = {
-    name: "Hello",
-    isAwesome: true,
-  };
+const redis = require("redis");
+const client = redis.createClient();
 
-  res.json(data);
+client.on("error", function (error) {
+  console.error(error);
+});
+
+app.post("/", (req, res) => {
+  res.json(req.body);
 });
 
 // program to generate random strings
-
 // declare all characters
 
 const generateString = (length) => {
@@ -127,6 +146,32 @@ app.get("/refresh_token", (req, res) => {
       res.send(error);
     });
 });
+
+app.get("/wikipedia", (req, res) => {
+  const search = req.query.artistName;
+  params.gsrsearch = search;
+  console.log(params);
+  axios
+    .get(wikiEndpoint, { params })
+    .then((response) => {
+      res.json(response.data);
+    })
+    .catch((error) => {
+      res.send(error);
+    });
+});
+
+// search port
+app.get("/search", (req, res) => {
+  // get the AccessTokenHash
+});
+app.get("/setcookie", function (req, res) {
+  // Setting a cookie with key 'my_cookie'
+  // and value 'geeksforgeeks'
+  res.cookie("my_cookie", "geeksforgeeks");
+  res.send("Cookies added");
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
