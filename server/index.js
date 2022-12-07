@@ -10,7 +10,7 @@ const REDIRECT_URI = process.env.REDIRECT_URI;
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const crypto = require("crypto");
-const request = require("request");
+
 const wikiEndpoint = "https://en.wikipedia.org/w/api.php?";
 const params = {
   origin: "*",
@@ -23,6 +23,9 @@ const params = {
   exintro: true,
   explaintext: true,
   gsrlimit: 5,
+};
+const jwtConfig = {
+  jwtSecret: "maggieD",
 };
 
 app.use(cors());
@@ -92,17 +95,58 @@ app.get("/callback", (req, res) => {
   })
     .then((response) => {
       if (response.status === 200) {
+        //get the access token from the response
         const { access_token, token_type } = response.data;
 
+        //send API call to fetch the current user profile
         axios
-          .get("https://api.spotify.com/v1/search?q=Selena&type=artist", {
+          .get("https://api.spotify.com/v1/me", {
             headers: {
               Authorization: `${token_type} ${access_token}`,
             },
           })
           .then((response) => {
             if (response.status === 200) {
-              res.send(`<pre>${JSON.stringify(response.data, null, 2)}<pre>`);
+              console.log(response.data);
+              const { id } = response.data; //extract unique user id
+
+              //try connecting to the Redis with aync function
+              client
+                .connect()
+                .then(async (res) => {
+                  console.log("connected");
+                  client.set(id, access_token, function (err, reply) {
+                    //key-value pair is stored successfully
+                    console.log("reply"); // OK
+                    const hash = crypto.createHash("sha256");
+                    hash.update(access_token);
+                    const spotifyAccessTokenHash = hash.digest("hex");
+                    const jwtPayload = {
+                      spotifyAccessTokenHash: spotifyAccessTokenHash,
+                    };
+
+                    const authJwtToken = jwt.sign(
+                      jwtPayload,
+                      jwtConfig.jwtSecret
+                    );
+
+                    //Note that this cookie is visible on the client side ONLY for demo
+                    //purposes. You'd want to set this to httpOnly to prevent the cookie
+                    //from being opened on the client side
+                    //e
+                    const cookieOptions = {
+                      httpOnly: true,
+                      expires: 0, //Makes this a session-only cookie
+                    };
+                    res.cookie("SpotifyAccessJwt", authJwtToken, cookieOptions); //res = response to the browser / user
+                  });
+                  client.quit();
+                })
+                .catch((err) => {
+                  console.log("err happened" + err);
+                });
+
+              // console.log(response.data);
             } else {
               res.send(response);
             }
@@ -110,12 +154,15 @@ app.get("/callback", (req, res) => {
           .catch((error) => {
             res.send(error);
           });
+        //Set up the hash for the access token
+
+        // console.log(response.data);
       } else {
         res.send(response);
       }
     })
     .catch((error) => {
-      res.send(error);
+      res.redirect("/login");
     });
 });
 
@@ -163,8 +210,23 @@ app.get("/wikipedia", (req, res) => {
 });
 
 // search port
-app.get("/search", (req, res) => {
-  // get the AccessTokenHash
+app.get("/spotify", (req, res) => {
+  axios
+    .get("https://api.spotify.com/v1/search?q=Selena&type=artist", {
+      headers: {
+        Authorization: `${token_type} ${access_token}`,
+      },
+    })
+    .then((response) => {
+      if (response.status === 200) {
+        res.send(`<pre>${JSON.stringify(response.data, null, 2)}<pre>`);
+      } else {
+        res.send(response);
+      }
+    })
+    .catch((error) => {
+      res.send(error);
+    });
 });
 app.get("/setcookie", function (req, res) {
   // Setting a cookie with key 'my_cookie'

@@ -1,0 +1,6 @@
+const jwtConfig = {
+
+    jwtSecret: "maggieD"
+}
+
+module.exports = jwtConfig
