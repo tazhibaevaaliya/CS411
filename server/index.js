@@ -60,6 +60,10 @@ const generateString = (length) => {
 
 const stateKey = "spotify_auth_state";
 
+app.get("/loginRedirect", (req, res) => {
+  res.redirect("http://localhost:4000/login");
+});
+
 app.get("/login", (req, res) => {
   const state = generateString(16);
   res.cookie(stateKey, state);
@@ -115,31 +119,7 @@ app.get("/callback", (req, res) => {
                 .connect()
                 .then(async (res) => {
                   console.log("connected");
-                  client.set(id, access_token, function (err, reply) {
-                    //key-value pair is stored successfully
-                    console.log("reply"); // OK
-                    const hash = crypto.createHash("sha256");
-                    hash.update(access_token);
-                    const spotifyAccessTokenHash = hash.digest("hex");
-                    const jwtPayload = {
-                      spotifyAccessTokenHash: spotifyAccessTokenHash,
-                    };
-
-                    const authJwtToken = jwt.sign(
-                      jwtPayload,
-                      jwtConfig.jwtSecret
-                    );
-
-                    //Note that this cookie is visible on the client side ONLY for demo
-                    //purposes. You'd want to set this to httpOnly to prevent the cookie
-                    //from being opened on the client side
-                    //e
-                    const cookieOptions = {
-                      httpOnly: true,
-                      expires: 0, //Makes this a session-only cookie
-                    };
-                    res.cookie("SpotifyAccessJwt", authJwtToken, cookieOptions); //res = response to the browser / user
-                  });
+                  client.set(id, access_token);
                   client.quit();
                 })
                 .catch((err) => {
@@ -154,9 +134,9 @@ app.get("/callback", (req, res) => {
           .catch((error) => {
             res.send(error);
           });
-        //Set up the hash for the access token
-
-        // console.log(response.data);
+        res.cookie("isLoggedIn", true); //res = response to the browser / user
+        res.redirect("http://localhost:3000");
+        re;
       } else {
         res.send(response);
       }
