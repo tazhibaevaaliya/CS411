@@ -98,10 +98,12 @@ app.get("/callback", (req, res) => {
     },
   })
     .then((response) => {
-      if (response.status === 200) {
+      if (response.status !== 200) {
+        res.send("There was an error!");
+      } else {
         //get the access token from the response
         const { access_token, token_type } = response.data;
-
+        console.log(response.data);
         //send API call to fetch the current user profile
         axios
           .get("https://api.spotify.com/v1/me", {
@@ -109,10 +111,12 @@ app.get("/callback", (req, res) => {
               Authorization: `${token_type} ${access_token}`,
             },
           })
-          .then((response) => {
-            if (response.status === 200) {
-              console.log(response.data);
-              const { id } = response.data; //extract unique user id
+          .then((profileResponse) => {
+            if (profileResponse.status !== 200) {
+              res.send("There was an error");
+            } else {
+              console.log(profileResponse.data);
+              const { id } = profileResponse.data; //extract unique user id
 
               //try connecting to the Redis with aync function
               client
@@ -126,24 +130,23 @@ app.get("/callback", (req, res) => {
                   console.log("err happened" + err);
                 });
 
-              res.cookie("isLoggedIn", { token_type: token_type, id: id }); //res = response to the browser / user
-              // console.log(response.data);
-            } else {
-              res.send(response);
+              res.cookie("isLoggedIn", true); //res = response to the browser / user
+              res.cookie("userInformation", {
+                token_type: token_type,
+                id: id,
+              });
+              res.redirect("http://localhost:3000");
             }
           })
           .catch((error) => {
             res.send(error);
           });
-
-        res.redirect("http://localhost:3000");
-        re;
-      } else {
-        res.send(response);
+        // res.redirect("http://localhost:3000");
       }
     })
     .catch((error) => {
-      res.redirect("/login");
+      // res.redirect("http://localhost:3000");
+      res.send(error);
     });
 });
 
@@ -193,36 +196,52 @@ app.get("/wikipedia", (req, res) => {
 // search port
 app.get("/spotify", (req, res) => {
   const artistName = req.query.artistName;
-  const { token_type, id } = req.cookies["isLoggedIn"];
+  const cookieName = "isLoggedIn";
+  // const { token_type, id } = req.cookies.cookieName;
+  console.log(req.cookies);
 
-  //try connecting to the Redis with aync function
-  client
-    .connect()
-    .then(async (res) => {
-      console.log("connected");
-      client.set(id, access_token);
-      client.quit();
-    })
-    .catch((err) => {
-      console.log("err happened" + err);
-    });
-  axios
-    .get(`https://api.spotify.com/v1/search?q=${artistName}&type=artist`, {
-      headers: {
-        Authorization: `${token_type} ${access_token}`,
-      },
-    })
-    .then((response) => {
-      if (response.status === 200) {
-        res.json(response.data);
-      } else {
-        res.send(response);
-      }
-    })
-    .catch((error) => {
-      res.send(error);
-    });
+  // //try connecting to the Redis with aync function
+  // client
+  //   .connect()
+  //   .then(async (r) => {
+  //     console.log("connected");
+  //     client.get(id, function (err, reply) {
+  //       if (!reply) {
+  //       } else {
+  //         const access_token = reply;
+  //         axios
+  //           .get(
+  //             `https://api.spotify.com/v1/search?q=${artistName}&type=artist`,
+  //             {
+  //               headers: {
+  //                 Authorization: `${token_type} ${access_token}`,
+  //               },
+  //             }
+  //           )
+  //           .then((response) => {
+  //             if (response.status === 200) {
+  //               res.json(response.data);
+  //             } else {
+  //               res.send(response);
+  //             }
+  //           })
+  //           .catch((error) => {
+  //             res.send(error);
+  //           });
+  //       }
+  //     });
+  //     client.quit();
+  //   })
+  //   .catch((err) => {
+  //     console.log("err happened" + err);
+  //   });
 });
+
+app.get("/logout", (req, res) => {
+  res.clearCookie("isLoggedIn"); //res = response to the browser / user
+  res.send("hello");
+});
+
 app.get("/setcookie", function (req, res) {
   // Setting a cookie with key 'my_cookie'
   // and value 'geeksforgeeks'

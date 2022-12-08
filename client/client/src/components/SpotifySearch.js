@@ -8,6 +8,7 @@ import Divider from "@mui/material/Divider";
 import spotifyLogo from "../assets/spotify_logo.png";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import Cookies from "universal-cookie";
 
 const commonStyles = {
   bgcolor: "background.paper",
@@ -27,6 +28,9 @@ function SpotifySearch() {
   const [search, setSearch] = useState("");
   const [results, setResults] = useState([]);
   const [searchInfo, setSearchInfo] = useState({});
+
+  const cookies = new Cookies();
+  const isLoggedIn = cookies.get("isLoggedIn") ?? false;
 
   function handleSubmit(event) {
     event.preventDefault();

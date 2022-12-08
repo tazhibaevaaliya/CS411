@@ -37,7 +37,7 @@ function LogIn() {
       <Box sx={{ ...commonStyles }}>
         <Icon icon="mdi:spotify" width="100" color="green" />
         <a href="http://localhost:4000/login">
-          <Button variant="outlined" style={{ marginLeft: "30px" }}>
+          <Button variant="contained" style={{ marginLeft: "30px" }}>
             Sign In
           </Button>
         </a>
