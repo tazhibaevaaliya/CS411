@@ -126,6 +126,7 @@ app.get("/callback", (req, res) => {
                   console.log("err happened" + err);
                 });
 
+              res.cookie("isLoggedIn", { token_type: token_type, id: id }); //res = response to the browser / user
               // console.log(response.data);
             } else {
               res.send(response);
@@ -134,7 +135,7 @@ app.get("/callback", (req, res) => {
           .catch((error) => {
             res.send(error);
           });
-        res.cookie("isLoggedIn", true); //res = response to the browser / user
+
         res.redirect("http://localhost:3000");
         re;
       } else {
@@ -191,15 +192,29 @@ app.get("/wikipedia", (req, res) => {
 
 // search port
 app.get("/spotify", (req, res) => {
+  const artistName = req.query.artistName;
+  const { token_type, id } = req.cookies["isLoggedIn"];
+
+  //try connecting to the Redis with aync function
+  client
+    .connect()
+    .then(async (res) => {
+      console.log("connected");
+      client.set(id, access_token);
+      client.quit();
+    })
+    .catch((err) => {
+      console.log("err happened" + err);
+    });
   axios
-    .get("https://api.spotify.com/v1/search?q=Selena&type=artist", {
+    .get(`https://api.spotify.com/v1/search?q=${artistName}&type=artist`, {
       headers: {
         Authorization: `${token_type} ${access_token}`,
       },
     })
     .then((response) => {
       if (response.status === 200) {
-        res.send(`<pre>${JSON.stringify(response.data, null, 2)}<pre>`);
+        res.json(response.data);
       } else {
         res.send(response);
       }

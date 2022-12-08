@@ -1,6 +1,7 @@
 import "./App.css";
 import React, { useEffect, useState } from "react";
 import WikiSearch from "./components/WikiSearch";
+import SpotifySearch from "./components/SpotifySearch";
 import Cookies from "universal-cookie";
 import { MDBBtn, MDBIcon } from "mdb-react-ui-kit";
 import Button from "@mui/material/Button";
@@ -13,7 +14,7 @@ function App() {
   return isLoggedIn ? (
     <div style={{ display: "flex", flexDirection: "row" }}>
       <div style={{ width: "50%" }}>
-        {/* <SpotifySearch></SpotifySearch> */}
+        <SpotifySearch></SpotifySearch>
       </div>
       <div class="vl"></div>
       <div style={{ width: "50%" }}>

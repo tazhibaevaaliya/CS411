@@ -7,6 +7,7 @@ import { FixedSizeList, ListChildComponentProps } from "react-window";
 import Divider from "@mui/material/Divider";
 import spotifyLogo from "../assets/spotify_logo.png";
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 
 const commonStyles = {
   bgcolor: "background.paper",
@@ -23,12 +24,16 @@ const commonStyles = {
 };
 
 function SpotifySearch() {
+  const [search, setSearch] = useState("");
+  const [results, setResults] = useState([]);
+  const [searchInfo, setSearchInfo] = useState({});
+
   function handleSubmit(event) {
     event.preventDefault();
     console.log(search);
     const options = {
       method: "GET",
-      url: "http://localhost:4000/wikipedia",
+      url: "http://localhost:4000/spotify",
       params: { artistName: search },
     };
     axios
@@ -56,26 +61,7 @@ function SpotifySearch() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </form>
-        {/* {searchInfo.totalhits ? (
-          <p>Search Results: {searchInfo.totalhits}</p>
-        ) : (
-          ""
-        )} */}
       </header>
-      <div className="results">
-        {results.map((result, i) => {
-          const url = `https://en.wikipedia.org/?curid=${result.pageid}`;
-          return (
-            <div className="result" key={i}>
-              <h3>{result.title}</h3>
-              <p dangerouslySetInnerHTML={{ __html: result.snippet }}></p>
-              <a href={url} target="_blank" rel="noreferrer">
-                Read more
-              </a>
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }
