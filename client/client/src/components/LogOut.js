@@ -8,6 +8,8 @@ function LogOut() {
   const handleClick = () => {
     console.log(cookies.get("isLoggedIn"));
     cookies.remove("isLoggedIn");
+    cookies.remove("spotify_auth_state");
+    cookies.remove("userInformation");
     window.location.reload();
     // axios
     //   .get("http://localhost:4000/logout")

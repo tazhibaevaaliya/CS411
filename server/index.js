@@ -10,6 +10,7 @@ const REDIRECT_URI = process.env.REDIRECT_URI;
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const crypto = require("crypto");
+const cookieParser = require("cookie-parser");
 
 const wikiEndpoint = "https://en.wikipedia.org/w/api.php?";
 const params = {
@@ -195,46 +196,41 @@ app.get("/wikipedia", (req, res) => {
 
 // search port
 app.get("/spotify", (req, res) => {
-  const artistName = req.query.artistName;
-  const cookieName = "isLoggedIn";
-  // const { token_type, id } = req.cookies.cookieName;
-  console.log(req.cookies);
+  const { artistName, id, token_type } = req.query;
+  // console.log(id);
 
-  // //try connecting to the Redis with aync function
-  // client
-  //   .connect()
-  //   .then(async (r) => {
-  //     console.log("connected");
-  //     client.get(id, function (err, reply) {
-  //       if (!reply) {
-  //       } else {
-  //         const access_token = reply;
-  //         axios
-  //           .get(
-  //             `https://api.spotify.com/v1/search?q=${artistName}&type=artist`,
-  //             {
-  //               headers: {
-  //                 Authorization: `${token_type} ${access_token}`,
-  //               },
-  //             }
-  //           )
-  //           .then((response) => {
-  //             if (response.status === 200) {
-  //               res.json(response.data);
-  //             } else {
-  //               res.send(response);
-  //             }
-  //           })
-  //           .catch((error) => {
-  //             res.send(error);
-  //           });
-  //       }
-  //     });
-  //     client.quit();
-  //   })
-  //   .catch((err) => {
-  //     console.log("err happened" + err);
-  //   });
+  //try connecting to the Redis with aync function
+  client
+    .connect()
+    .then(async (r) => {
+      console.log("connected");
+
+      const access_token = client.get(id, function (err, reply) {
+        return reply;
+      });
+
+      console.log(access_token);
+      client.quit();
+      // axios
+      //   .get(`https://api.spotify.com/v1/search?q=${artistName}&type=artist`, {
+      //     headers: {
+      //       Authorization: `${token_type} ${access_token}`,
+      //     },
+      //   })
+      //   .then((response) => {
+      //     if (response.status === 200) {
+      //       res.send(response.data);
+      //     } else {
+      //       res.send(response);
+      //     }
+      //   })
+      //   .catch((error) => {
+      //     res.send(error);
+      //   });
+    })
+    .catch((err) => {
+      console.log("err happened" + err);
+    });
 });
 
 app.get("/logout", (req, res) => {

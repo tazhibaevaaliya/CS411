@@ -12,6 +12,7 @@ function App() {
   const cookies = new Cookies();
   const [userCookies, setUserCookies] = useState(cookies.get("isLoggedIn"));
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   useEffect(() => {
     setIsLoggedIn(cookies.get("isLoggedIn"));
   }, [userCookies]);

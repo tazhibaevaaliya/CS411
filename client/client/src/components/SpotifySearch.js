@@ -30,7 +30,7 @@ function SpotifySearch() {
   const [searchInfo, setSearchInfo] = useState({});
 
   const cookies = new Cookies();
-  const isLoggedIn = cookies.get("isLoggedIn") ?? false;
+  const { id, token_type } = cookies.get("userInformation");
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -38,7 +38,7 @@ function SpotifySearch() {
     const options = {
       method: "GET",
       url: "http://localhost:4000/spotify",
-      params: { artistName: search },
+      params: { artistName: search, id: id, token_type: token_type },
     };
     axios
       .request(options)
