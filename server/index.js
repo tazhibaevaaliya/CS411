@@ -32,7 +32,7 @@ const jwtConfig = {
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
+app.use(cookieParser());
 const redis = require("redis");
 const client = redis.createClient();
 
@@ -103,7 +103,8 @@ app.get("/callback", (req, res) => {
         res.send("There was an error!");
       } else {
         //get the access token from the response
-        const { access_token, token_type } = response.data;
+        const { access_token, token_type, refresh_token } = response.data;
+
         console.log(response.data);
         //send API call to fetch the current user profile
         axios
@@ -132,10 +133,15 @@ app.get("/callback", (req, res) => {
                 });
 
               res.cookie("isLoggedIn", true); //res = response to the browser / user
-              res.cookie("userInformation", {
-                token_type: token_type,
-                id: id,
-              });
+              res.cookie(
+                "userInformation",
+                {
+                  token_type: token_type,
+                  id: id,
+                  refresh_token: refresh_token,
+                },
+                { httpOnly: false }
+              );
               res.redirect("http://localhost:3000");
             }
           })
@@ -153,8 +159,7 @@ app.get("/callback", (req, res) => {
 
 app.get("/refresh_token", (req, res) => {
   const { refresh_token } = req.query;
-
-  axios({
+  const { id } = axios({
     method: "post",
     url: "https://accounts.spotify.com/api/token",
     data: queryString.stringify({
@@ -170,9 +175,19 @@ app.get("/refresh_token", (req, res) => {
   })
     .then((response) => {
       if (response.status === 200) {
-        res.send(`<pre>${JSON.stringify(response.data, null, 2)}<pre>`);
       } else {
-        res.send(response);
+        const access_token = response.access_token;
+        client
+          .connect()
+          .then(async (res) => {
+            console.log("connected");
+            client.set(id, access_token);
+            client.quit();
+          })
+          .catch((err) => {
+            console.log("err happened" + err);
+          });
+        console.log(access_token);
       }
     })
     .catch((error) => {
@@ -197,36 +212,83 @@ app.get("/wikipedia", (req, res) => {
 // search port
 app.get("/spotify", (req, res) => {
   const { artistName, id, token_type } = req.query;
-  // console.log(id);
-
+  console.log(req.cookies.userInformation);
+  // console.log(string());
   //try connecting to the Redis with aync function
   client
     .connect()
     .then(async (r) => {
       console.log("connected");
 
-      const access_token = client.get(id, function (err, reply) {
-        return reply;
-      });
-
-      console.log(access_token);
+      //getting access_token from the redis using the key:id
+      const access_token = await client.get(id);
       client.quit();
-      // axios
-      //   .get(`https://api.spotify.com/v1/search?q=${artistName}&type=artist`, {
-      //     headers: {
-      //       Authorization: `${token_type} ${access_token}`,
-      //     },
-      //   })
-      //   .then((response) => {
-      //     if (response.status === 200) {
-      //       res.send(response.data);
-      //     } else {
-      //       res.send(response);
-      //     }
-      //   })
-      //   .catch((error) => {
-      //     res.send(error);
-      //   });
+
+      //making a Spotify API call to fetch the results for the local artist
+      axios
+        .get(`https://api.spotify.com/v1/search?q=${artistName}&type=artist`, {
+          headers: {
+            Authorization: `${token_type} ${access_token}`,
+          },
+        })
+        .then((response) => {
+          if (response.status === 200) {
+            res.send(response.data);
+            console.log("here");
+          } else {
+            console.log(response.status);
+            res.send(response);
+          }
+        })
+        .catch((error) => {
+          console.log("here");
+          res.send(error);
+        });
+    })
+    .catch((err) => {
+      console.log("err happened" + err);
+    });
+});
+
+app.get("/follow", (req, res) => {
+  const { id, token_type, artistID } = req.query;
+  client
+    .connect()
+    .then(async (r) => {
+      console.log("connected");
+
+      //getting access_token from the redis using the key:id
+      const access_token = await client.get(id);
+      client.quit();
+
+      //making a Spotify API call to fetch the results for the local artist
+      axios
+        .post(
+          `https://api.spotify.com/v1/me/following?type=artist&${artistID}`,
+          {
+            headers: {
+              Authorization: `${token_type} ${access_token}`,
+            },
+          }
+        )
+        .then((response) => {
+          if (response.status === 200) {
+            res.send("Followed successfully");
+            console.log("here");
+            // if (response.data.status === 401) {
+            //   res.redirect("/refresh_token");
+            // } else {
+
+            // }
+          } else {
+            console.log(response.status);
+            res.send(response);
+          }
+        })
+        .catch((error) => {
+          // console.log("here");
+          res.send(error);
+        });
     })
     .catch((err) => {
       console.log("err happened" + err);
@@ -234,8 +296,19 @@ app.get("/spotify", (req, res) => {
 });
 
 app.get("/logout", (req, res) => {
-  res.clearCookie("isLoggedIn"); //res = response to the browser / user
-  res.send("hello");
+  const { id } = req.query;
+  console.log(id);
+  // res.cookie("isLoggedIn", false);
+  // res.redirect("http://localhost:3000");
+  // client.connect().then(async (response) => {
+  //   client.del(id, function (err, reply) {
+  //     console.log(reply); // 1
+  //   });
+  // });
+  // res.clearCookie("isLoggedIn");
+  // console.log(res.cookie("isLoggedIn", false));
+  // res.clearCookie("isLoggedIn", { path: "/", domain: "localhost" });
+  // res.redirect("http://localhost:3000");
 });
 
 app.get("/setcookie", function (req, res) {

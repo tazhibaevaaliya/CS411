@@ -6,13 +6,14 @@ function LogOut() {
   const cookies = new Cookies();
 
   const handleClick = () => {
-    console.log(cookies.get("isLoggedIn"));
-    cookies.remove("isLoggedIn");
-    cookies.remove("spotify_auth_state");
-    cookies.remove("userInformation");
-    window.location.reload();
+    const id = cookies.get("userInformation").id;
+    // const options = {
+    //   method: "GET",
+    //   url: "http://localhost:4000/logout",
+    //   params: { id: id },
+    // };
     // axios
-    //   .get("http://localhost:4000/logout")
+    //   .request(options)
     //   .then((response) => {
     //     // Use the response here
     //     console.log(response);
@@ -21,6 +22,12 @@ function LogOut() {
     //     // Handle errors here
     //     console.log(error);
     //   });
+
+    console.log(cookies.get("isLoggedIn"));
+    cookies.remove("isLoggedIn");
+    cookies.remove("spotify_auth_state");
+    cookies.remove("userInformation");
+    window.location.reload();
   };
   return (
     <Button
